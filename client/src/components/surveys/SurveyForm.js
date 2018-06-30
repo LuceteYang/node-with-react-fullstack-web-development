@@ -3,12 +3,14 @@ import React, {Component} from 'react';
 import { reduxForm, Field} from 'redux-form';
 import SurveyField from './SurveyField';
 import {Link} from 'react-router-dom';
+import validateEmails from '../../utils/validateEmails';
+
 
 const FIELDS = [
-{label:"Survey Title", type:"text", name:"title"},
-{label:"Subject Line", type:"text", name:"subject"},
-{label:"Email Body", type:"text", name:"body"},
-{label:"Recipent List", type:"text", name:"emails"}
+{label:"Survey Title", name:"title", noValueError:"You must provide a title"},
+{label:"Subject Line", name:"subject", noValueError:"You must provide a subject"},
+{label:"Email Body", name:"body", noValueError:"You must provide a body"},
+{label:"Recipent List", name:"emails", noValueError:"You must provide a emails"},
 ];
 
 class SurveyForm extends Component {
@@ -20,11 +22,11 @@ class SurveyForm extends Component {
 		});
 	}
 	render(){
-		return (
+		return ( 
 			<div>
-				<form onSubmit={this.props.handleSubmit(values=> console.log(values))}>
+				<form onSubmit={this.props.handleSubmit(this.props.onSurveySubmit)}>
 				 {this.renderFields()}
-				 <Link to="/surveys" className="red btn-flat white-text">
+				 <Link to="/survey" className="red btn-flat white-text">
 				 	Cancel
 				 </Link>
 				 <button type="submit" className="teal btn-flat right white-text">
@@ -39,14 +41,32 @@ class SurveyForm extends Component {
 
 function validate(values){
 	const errors = {};
-	if(!values.title){
-		errors.title = "You must provide a title";
-	}
+	// if(!values.title){
+	// 	errors.title = "You must provide a title";
+	// }
+	// if(!values.subject){
+	// 	errors.subject = "You must provide a subject";
+	// }
+	// if(!values.body){
+	// 	errors.body = "You must provide a body";
+	// }
+	// if(!values.emails){
+	// 	errors.emails = "You must provide a emails";
+	// }
+	errors.emails = validateEmails(values.emails || '');
+	_.map(FIELDS, ({ name, noValueError }) => {
+		console.log(values)
+		if(!values[name]){
+			errors[name] = noValueError
+		}
+	});
+
 	return errors;
 }
 
 
 export default reduxForm({
 	validate,
-	form: 'surveyForm'
+	form: 'surveyForm',
+	destroyOnUnmount: false	//이거 해주면 없어졌다다시 와도 살아있음
 })(SurveyForm);
