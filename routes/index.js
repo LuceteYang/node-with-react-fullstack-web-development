@@ -33,6 +33,10 @@ router.post('/api/stripe', requireLogin,(req, res) => {
 	res.send(req.session.passport.user)
 });
 
+router.post('/api/surbeys/webhooks',(req, res) => {
+	res.send({})
+});
+
 router.post('/api/surveys', requireLogin,requireCredits,(req, res) => {
 	const {title, subject, body, recipents} = req.body;
 	let newSurveys = {
@@ -43,6 +47,7 @@ router.post('/api/surveys', requireLogin,requireCredits,(req, res) => {
 		_user: req.session.passport.user.id,
 		datesent: Date.now()
 	}
+
 	surveys.push(newSurveys);
 	req.session.passport.user.credits -= 1;
 	res.send(req.session.passport.user)
