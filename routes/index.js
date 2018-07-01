@@ -1,12 +1,13 @@
- var express = require('express');
+const _ = require('lodash');
+const Path = require('path-parser');
+const { URL } = require('url');
+var express = require('express');
 var router = express.Router();
 const requireLogin = require('../middleWares/requireLogin');
 const requireCredits = require('../middleWares/requireCredits');
 /* GET home page. */
 let surveys = [];
-router.get('/', function(req, res, next) {
-  res.render('index', { title: 'Express' });
-});
+
 router.get('/auth/google', function(req, res, next) {
 	req.session.passport={ user:{_id:"dsfsdf",googleId:"dsfsdf",__v:0,credits:0}}
   	res.redirect('/surveys')
@@ -33,8 +34,23 @@ router.post('/api/stripe', requireLogin,(req, res) => {
 	res.send(req.session.passport.user)
 });
 
-router.post('/api/surbeys/webhooks',(req, res) => {
-	res.send({})
+
+router.post('/api/surveys/webhooks',(req, res) => {
+	const p = new Path('/api/surveys/:surveyId/:choice');
+
+	const events = _chain(req.body)
+	.map(({email, url}) =>{
+		const match = p.test(new URL(url).pathname);
+		if(match){
+			return {email, surveyId:match.surveyId, choice: match.choice}
+		}
+	})
+	.compact()
+	.uniqBy('email','surveyId')
+	.each(({surveyId, email, choide})=>{
+
+	})
+	res.send({});
 });
 
 router.post('/api/surveys', requireLogin,requireCredits,(req, res) => {
@@ -53,9 +69,8 @@ router.post('/api/surveys', requireLogin,requireCredits,(req, res) => {
 	res.send(req.session.passport.user)
 });
 
-router.get('/api/surveys', function(req, res, next) {
-	req.session.passport={ user:{_id:"dsfsdf",googleId:"dsfsdf",__v:0,credits:0}}
-  	res.redirect('/surveys')
+router.get('/api/surveys',requireLogin, function(req, res, next) {
+	res.send(surveys)
 });
 
 
